@@ -104,13 +104,24 @@ aside .hint { margin: 0 0 10px; font-size: .84rem; color: var(--muted); }
 footer { font-size: .76rem; color: var(--muted); }
 footer a { color: inherit; }
 
+.gh-corner { position: fixed; top: 0; right: 0; z-index: 4; line-height: 0; }
+.gh-corner svg { width: 68px; height: 68px; fill: var(--accent); color: var(--bg); }
+.gh-corner .arm { transform-origin: 130px 106px; }
+.gh-corner:hover .arm { animation: wave .56s ease-in-out; }
+@keyframes wave { 0%, 100% { transform: rotate(0); } 20%, 60% { transform: rotate(-25deg); } 40%, 80% { transform: rotate(10deg); } }
+.gh-icon { display: none; padding: 7px; line-height: 0; color: var(--ink); }
+.gh-icon svg { width: 20px; height: 20px; fill: currentColor; }
+@media (max-width: 1330px) { header { padding-right: 58px; } }
+
 @media (max-width: 860px) {
   .app { padding: 0 10px; }
   main { grid-template-columns: 1fr; padding-bottom: 10px; }
   .btn.side-toggle { display: inline-block; }
   aside { display: none; position: fixed; inset: 70px 10px 10px; z-index: 5; }
   body.side-open aside { display: flex; }
-  .brand p, .long { display: none; }
+  .brand p, .long, .gh-corner { display: none; }
+  header { padding-right: 0; }
+  .gh-icon { display: inline-block; }
   .short { display: inline; }
   .btn { padding: 8px 12px; }
   .msg { max-width: 90%; }
@@ -120,6 +131,9 @@ footer a { color: inherit; }
 </style>
 </head>
 <body>
+<a class="gh-corner" href="https://github.com/choas/jev-service-desk-demo" target="_blank" rel="noopener" aria-label="View source on GitHub" title="View source on GitHub">
+  <svg viewBox="0 0 250 250" aria-hidden="true"><path d="M0 0l115 115h15l12 27 108 108V0z"/><path class="arm" fill="currentColor" d="M128.3 109c-14.5-9.3-9.3-19.4-9.3-19.4 3-6.9 1.5-11 1.5-11-1.3-6.6 2.9-2.3 2.9-2.3 3.9 4.6 2.1 11 2.1 11-2.6 10.3 5.1 14.6 8.9 15.9"/><path fill="currentColor" d="M115 115c-.1.1 3.7 1.5 4.8.4l13.9-13.8c3.2-2.4 6.2-3.2 8.5-3-8.4-10.6-14.7-24.2 1.6-40.6 4.7-4.6 10.2-6.8 15.9-7 .6-1.6 3.5-7.4 11.7-10.9 0 0 4.7 2.4 7.4 16.1 4.3 2.4 8.4 5.6 12.1 9.2 3.6 3.6 6.8 7.8 9.2 12.2 13.7 2.6 16.2 7.3 16.2 7.3-3.6 8.2-9.4 11.1-10.9 11.7-.3 5.8-2.4 11.2-7.1 15.9-16.4 16.4-30 10-40.6 1.6.2 2.8-1 6.8-5 10.8L141 136.5c-1.2 1.2.6 5.4.8 5.3z"/></svg>
+</a>
 <div class="app">
   <header>
     <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M5 7h14M5 12h9M5 17h12"/></svg></div>
@@ -127,6 +141,7 @@ footer a { color: inherit; }
       <h1>Jev Service Desk</h1>
       <p>A service bot that never makes up text. It only decides.</p>
     </div>
+    <a class="btn gh-icon" href="https://github.com/choas/jev-service-desk-demo" target="_blank" rel="noopener" aria-label="View source on GitHub" title="View source on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a>
     <button class="btn side-toggle" id="sideToggle" type="button">Examples</button>
     <button class="btn" id="newChat" type="button">New <span class="long">conversation</span><span class="short">chat</span></button>
   </header>
@@ -156,7 +171,7 @@ footer a { color: inherit; }
         <p class="hint" id="shopName">Tap a number to use it in your message.</p>
         <div id="orders"></div>
       </div>
-      <footer>Demo with fictional data. Messages are sent to Jev (TypeSafe AI) through OpenRouter. Please do not enter personal data.</footer>
+      <footer>Demo with fictional data. Messages are sent to Jev (TypeSafe AI) through OpenRouter. Please do not enter personal data. <a href="https://github.com/choas/jev-service-desk-demo" target="_blank" rel="noopener">Source code on GitHub</a>.</footer>
     </aside>
   </main>
 </div>
