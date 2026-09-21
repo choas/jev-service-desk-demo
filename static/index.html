@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jev Service Desk</title>
+<meta name="description" content="A customer service bot that never generates text. Jev makes typed decisions with probabilities, plain code does the rest.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23134e4a'/><path d='M9 11h14M9 16h9M9 21h12' stroke='%23fef3c7' stroke-width='2.6' stroke-linecap='round'/></svg>">
+<style>
+:root {
+  --bg: #f6f3ec; --panel: #fffdf8; --ink: #1d2725; --muted: #64706c; --line: #e3ddd0;
+  --accent: #134e4a; --accent-ink: #fdf8ea; --soft: #e6efe9; --user: #134e4a; --user-ink: #fdf8ea;
+  --bar: #2f8f83; --bar-bg: #e9e4d7; --warn: #b4541a; --shadow: 0 1px 2px rgba(30,40,35,.06), 0 8px 24px rgba(30,40,35,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121716; --panel: #1a211f; --ink: #e8ece8; --muted: #93a09b; --line: #2a3431;
+    --accent: #5fc5b5; --accent-ink: #0d1b19; --soft: #1f2d2a; --user: #2a6f66; --user-ink: #f2fbf8;
+    --bar: #5fc5b5; --bar-bg: #2a3431; --warn: #f0a36b; --shadow: none;
+  }
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+.app { height: 100dvh; display: grid; grid-template-rows: auto 1fr; max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+
+header { display: flex; align-items: center; gap: 12px; padding: 16px 0 12px; }
+.logo { width: 38px; height: 38px; border-radius: 11px; background: var(--accent); display: grid; place-items: center; flex: none; }
+.logo svg { width: 20px; height: 20px; stroke: var(--accent-ink); }
+.brand { min-width: 0; flex: 1; }
+.brand h1 { margin: 0; font: 600 1.15rem/1.2 ui-serif, Georgia, "Times New Roman", serif; letter-spacing: .01em; }
+.brand p { margin: 2px 0 0; font-size: .82rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 8px 14px; font-size: .88rem; font-weight: 550; white-space: nowrap; transition: border-color .15s, transform .05s; }
+.btn:hover { border-color: var(--accent); }
+.btn:active { transform: translateY(1px); }
+.btn.side-toggle, .short { display: none; }
+
+main { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; min-height: 0; padding-bottom: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); min-height: 0; }
+
+.chat { display: grid; grid-template-rows: 1fr auto; overflow: hidden; }
+.log { overflow-y: auto; padding: 22px 20px 8px; display: flex; flex-direction: column; gap: 14px; scroll-behavior: smooth; }
+.welcome { margin: auto 0; padding: 12px 4px; }
+.welcome h2 { font: 600 1.55rem/1.25 ui-serif, Georgia, serif; margin: 0 0 8px; }
+.welcome p { margin: 0 0 18px; color: var(--muted); max-width: 52ch; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 8px 13px; font-size: .88rem; text-align: left; transition: border-color .15s, background .15s; }
+.chip:hover { border-color: var(--accent); background: var(--soft); }
+
+.msg { max-width: min(78%, 600px); display: flex; flex-direction: column; gap: 6px; animation: rise .22s ease-out; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+.msg.user { align-self: flex-end; align-items: flex-end; }
+.bubble { padding: 10px 14px; border-radius: 16px; overflow-wrap: anywhere; }
+.user .bubble { background: var(--user); color: var(--user-ink); border-bottom-right-radius: 5px; }
+.bot .bubble { background: var(--soft); border-bottom-left-radius: 5px; }
+.msg.error .bubble { background: transparent; border: 1px dashed var(--warn); color: var(--warn); font-size: .92rem; }
+.typing span { display: inline-block; width: 6px; height: 6px; margin: 0 2px; border-radius: 50%; background: var(--muted); animation: blink 1.1s infinite; }
+.typing span:nth-child(2) { animation-delay: .18s; } .typing span:nth-child(3) { animation-delay: .36s; }
+@keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+
+details.why { font-size: .82rem; color: var(--muted); width: 100%; min-width: min(340px, 70vw); }
+details.why summary { cursor: pointer; list-style: none; display: inline-flex; gap: 6px; align-items: center; padding: 2px 4px; border-radius: 6px; user-select: none; }
+details.why summary::-webkit-details-marker { display: none; }
+details.why summary::before { content: "›"; display: inline-block; transition: transform .15s; font-size: 1rem; line-height: 1; }
+details.why[open] summary::before { transform: rotate(90deg); }
+details.why summary:hover { color: var(--ink); }
+.decisions { margin-top: 6px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: var(--panel); display: grid; gap: 12px; }
+.q { color: var(--ink); font-weight: 550; margin-bottom: 5px; }
+.row { display: grid; grid-template-columns: 112px 1fr 38px; gap: 8px; align-items: center; line-height: 1.7; }
+.row .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row.top .name { color: var(--ink); }
+.track { height: 7px; border-radius: 99px; background: var(--bar-bg); position: relative; }
+.fill { height: 100%; border-radius: 99px; background: var(--bar); opacity: .45; min-width: 2px; transition: width .5s ease-out; }
+.row.top .fill { opacity: 1; }
+.tick { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); opacity: .55; border-radius: 2px; }
+.pct { text-align: right; font-variant-numeric: tabular-nums; }
+.note { font-size: .78rem; }
+
+form { display: flex; gap: 10px; padding: 12px 14px 14px; border-top: 1px solid var(--line); align-items: flex-end; }
+textarea { flex: 1; resize: none; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 14px; padding: 11px 14px; font: inherit; max-height: 140px; outline: none; transition: border-color .15s; }
+textarea:focus { border-color: var(--accent); }
+.send { border: 0; background: var(--accent); color: var(--accent-ink); width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; flex: none; transition: opacity .15s, transform .05s; }
+.send:disabled { opacity: .4; cursor: default; }
+.send:active:not(:disabled) { transform: translateY(1px); }
+
+aside { overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 22px; }
+aside h3 { margin: 0 0 4px; font-size: .74rem; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); font-weight: 650; }
+aside .hint { margin: 0 0 10px; font-size: .84rem; color: var(--muted); }
+.steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; counter-reset: s; font-size: .9rem; }
+.steps li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; counter-increment: s; }
+.steps li::before { content: counter(s); width: 24px; height: 24px; border-radius: 50%; background: var(--soft); color: var(--accent); font-size: .78rem; font-weight: 700; display: grid; place-items: center; }
+.order { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; font-size: .86rem; }
+.order .item { font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
+.badge { font-size: .7rem; font-weight: 600; padding: 1px 8px; border-radius: 99px; background: var(--soft); color: var(--accent); white-space: nowrap; align-self: center; }
+.order .who { color: var(--muted); margin-bottom: 6px; }
+.ids { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; align-items: center; color: var(--muted); }
+.num { border: 0; background: none; padding: 0; text-align: left; font: .84rem ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--accent); text-decoration: underline dotted; text-underline-offset: 3px; }
+.num:hover { text-decoration-style: solid; }
+footer { font-size: .76rem; color: var(--muted); }
+footer a { color: inherit; }
+
+@media (max-width: 860px) {
+  .app { padding: 0 10px; }
+  main { grid-template-columns: 1fr; padding-bottom: 10px; }
+  .btn.side-toggle { display: inline-block; }
+  aside { display: none; position: fixed; inset: 70px 10px 10px; z-index: 5; }
+  body.side-open aside { display: flex; }
+  .brand p, .long { display: none; }
+  .short { display: inline; }
+  .btn { padding: 8px 12px; }
+  .msg { max-width: 90%; }
+  .log { padding: 16px 12px 8px; }
+  .row { grid-template-columns: 92px 1fr 36px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M5 7h14M5 12h9M5 17h12"/></svg></div>
+    <div class="brand">
+      <h1>Jev Service Desk</h1>
+      <p>A service bot that never makes up text. It only decides.</p>
+    </div>
+    <button class="btn side-toggle" id="sideToggle" type="button">Examples</button>
+    <button class="btn" id="newChat" type="button">New <span class="long">conversation</span><span class="short">chat</span></button>
+  </header>
+
+  <main>
+    <section class="card chat">
+      <div class="log" id="log" aria-live="polite"></div>
+      <form id="form" autocomplete="off">
+        <textarea id="input" rows="1" maxlength="400" placeholder="Type your question" aria-label="Your message"></textarea>
+        <button class="send" id="send" type="submit" aria-label="Send">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </form>
+    </section>
+
+    <aside class="card" id="side">
+      <div>
+        <h3>How it works</h3>
+        <ol class="steps">
+          <li>Jev reads your message and answers a few fixed questions with probabilities.</li>
+          <li>If it is sure, plain code looks up the data and picks a prepared reply.</li>
+          <li>If it is not sure, the bot asks you instead of guessing.</li>
+        </ol>
+      </div>
+      <div>
+        <h3>Example data</h3>
+        <p class="hint" id="shopName">Tap a number to use it in your message.</p>
+        <div id="orders"></div>
+      </div>
+      <footer>Demo with fictional data. Messages are sent to Jev (TypeSafe AI) through OpenRouter. Please do not enter personal data.</footer>
+    </aside>
+  </main>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const log = $("log"), input = $("input"), sendBtn = $("send");
+let session = null, busy = false, starters = [], thresholds = { choice: 0.7, margin: 0.2 };
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+const pct = p => Math.round(p * 100) + "%";
+
+function welcome() {
+  log.replaceChildren();
+  const w = el("div", "welcome");
+  w.append(el("h2", null, "How can I help?"),
+           el("p", null, "Ask like a real customer would: vague, angry, off topic, with or without a number. Open “How the bot decided” under any answer to see what happened."));
+  const chips = el("div", "chips");
+  for (const s of starters) {
+    const c = el("button", "chip", s);
+    c.type = "button";
+    c.onclick = () => send(s);
+    chips.append(c);
+  }
+  w.append(chips);
+  log.append(w);
+}
+
+function addMsg(role, text) {
+  log.querySelector(".welcome")?.remove();
+  const m = el("div", "msg " + role);
+  m.append(el("div", "bubble", text));
+  log.append(m);
+  log.scrollTop = log.scrollHeight;
+  return m;
+}
+
+function bar(name, p, top, tick) {
+  const row = el("div", "row" + (top ? " top" : ""));
+  const track = el("div", "track"), fill = el("div", "fill");
+  fill.style.width = "0%";
+  requestAnimationFrame(() => fill.style.width = pct(p));
+  track.append(fill);
+  if (tick != null) { const t = el("div", "tick"); t.style.left = pct(tick); track.append(t); }
+  row.append(el("div", "name", name), track, el("div", "pct", pct(p)));
+  return row;
+}
+
+function why(calls) {
+  const d = el("details", "why");
+  const ms = calls.reduce((s, c) => s + c.ms, 0);
+  const n = calls.reduce((s, c) => s + c.decisions.length, 0);
+  d.append(el("summary", null, `How the bot decided · ${n} decisions in ${ms} ms`));
+  const box = el("div", "decisions");
+  for (const call of calls) for (const dec of call.decisions) {
+    const b = el("div");
+    b.append(el("div", "q", dec.question));
+    if (dec.type === "noul") {
+      const yes = dec.name === "in_scope" ? dec.p >= dec.threshold : dec.p > dec.threshold;
+      b.append(bar("yes", dec.p, yes, dec.threshold));
+      b.append(el("div", "note", `Counts as yes from ${pct(dec.threshold)} (the mark).`));
+    } else {
+      const [first, second] = dec.options;
+      const clear = first[1] >= thresholds.choice && first[1] - (second ? second[1] : 0) >= thresholds.margin;
+      dec.options.forEach((o, i) => b.append(bar(o[0], o[1], i === 0 && clear, i === 0 ? thresholds.choice : null)));
+      if (!clear) b.append(el("div", "note", "Not clear enough, so the bot asks instead of guessing."));
+    }
+    box.append(b);
+  }
+  const cost = calls.reduce((s, c) => s + (c.cost || 0), 0);
+  if (cost) box.append(el("div", "note", `Cost of this answer: $${cost.toFixed(6)}`));
+  d.append(box);
+  return d;
+}
+
+async function send(text) {
+  text = (text ?? input.value).trim();
+  if (!text || busy) return;
+  busy = true; sendBtn.disabled = true;
+  input.value = ""; autosize();
+  addMsg("user", text);
+  const wait = addMsg("bot", "");
+  wait.firstChild.classList.add("typing");
+  wait.firstChild.append(el("span"), el("span"), el("span"));
+  try {
+    const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({ session, text }) });
+    const data = await res.json();
+    if (data.session) session = data.session;
+    wait.remove();
+    if (!res.ok) addMsg("error", data.error || "Something went wrong.");
+    else {
+      const m = addMsg("bot", data.reply);
+      if (data.calls?.length) m.append(why(data.calls));
+      log.scrollTop = log.scrollHeight;
+    }
+  } catch {
+    wait.remove();
+    addMsg("error", "Could not reach the server. Please try again.");
+  }
+  busy = false; sendBtn.disabled = false;
+  if (matchMedia("(min-width: 861px)").matches) input.focus();
+}
+
+function autosize() { input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 140) + "px"; }
+input.addEventListener("input", autosize);
+input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } });
+$("form").addEventListener("submit", e => { e.preventDefault(); send(); });
+$("newChat").onclick = () => { if (busy) return; session = null; welcome(); input.focus(); };
+$("sideToggle").onclick = () => document.body.classList.toggle("side-open");
+
+function useNumber(n) {
+  const v = input.value.trimEnd();
+  input.value = v ? v + " " + n : n;
+  document.body.classList.remove("side-open");
+  autosize(); input.focus();
+}
+
+function numBtn(n) {
+  const b = el("button", "num", n);
+  b.type = "button"; b.title = "Use in message";
+  b.onclick = () => useNumber(n);
+  return b;
+}
+
+fetch("/api/examples").then(r => r.json()).then(d => {
+  starters = d.starters; thresholds = d.thresholds;
+  $("shopName").textContent = d.shop + ". Tap a number to use it.";
+  for (const o of d.orders) {
+    const c = el("div", "order");
+    const head = el("div", "item");
+    head.append(el("span", null, o.item), el("span", "badge", o.status));
+    const ids = el("div", "ids");
+    ids.append(el("span", null, "Order"), numBtn(o.order));
+    if (o.tracking) ids.append(el("span", null, "Tracking"), numBtn(o.tracking));
+    ids.append(el("span", null, `Invoice (${o.amount} €)`), numBtn(o.invoice), el("span", null, "Customer"), numBtn(o.customer));
+    c.append(head, el("div", "who", o.name), ids);
+    $("orders").append(c);
+  }
+  welcome();
+  const q = new URLSearchParams(location.search).get("q");   // shareable link with a first question
+  if (q) { history.replaceState(null, "", location.pathname); send(q.slice(0, 400)); }
+}).catch(welcome);
+</script>
+</body>
+</html>

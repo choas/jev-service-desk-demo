@@ -1,0 +1,53 @@
+{
+  "shop": "Nordlicht Home (demo shop, all data is fictional)",
+  "customers": {
+    "100482": {"name": "Anna Becker", "email": "anna.becker@example.com", "city": "Hamburg"},
+    "100517": {"name": "Jonas Weber", "email": "jonas.weber@example.com", "city": "Leipzig"},
+    "100533": {"name": "Mira Schulz", "email": "mira.schulz@example.com", "city": "Freiburg"}
+  },
+  "orders": {
+    "48213377": {
+      "customer": "100482", "item": "Glass blender \"Smoothie Pro\"", "total": "89.90",
+      "status": "delivered", "date": "12 Sep", "carrier": "DHL",
+      "tracking": "773301245511", "invoice": "90071201"
+    },
+    "48213402": {
+      "customer": "100482", "item": "Running shoes, size 42, blue", "total": "119.00",
+      "status": "shipped", "eta": "tomorrow", "carrier": "DHL",
+      "tracking": "773301245566", "invoice": "90071215"
+    },
+    "48213419": {
+      "customer": "100517", "item": "Desk lamp \"Lumen\"", "total": "54.50",
+      "status": "processing", "eta": "in 3 to 4 days", "carrier": null,
+      "tracking": null, "invoice": "90071222"
+    },
+    "48213450": {
+      "customer": "100533", "item": "Wireless headphones \"Stille\"", "total": "149.00",
+      "status": "delivered", "date": "8 Sep", "carrier": "Hermes",
+      "tracking": "773301245602", "invoice": "90071238"
+    },
+    "48213468": {
+      "customer": "100533", "item": "Wool blanket, grey", "total": "74.00",
+      "status": "shipped", "eta": "on Thursday", "carrier": "Hermes",
+      "tracking": "773301245619", "invoice": "90071244"
+    }
+  },
+  "invoices": {
+    "90071201": {"order": "48213377", "amount": "89.90", "state": "paid by credit card"},
+    "90071215": {"order": "48213402", "amount": "119.00", "state": "paid by PayPal"},
+    "90071222": {"order": "48213419", "amount": "54.50", "state": "open, due 30 Sep by bank transfer"},
+    "90071238": {"order": "48213450", "amount": "149.00", "state": "paid by credit card"},
+    "90071244": {"order": "48213468", "amount": "74.00", "state": "open, due 5 Oct by bank transfer"}
+  },
+  "starters": [
+    "Where is my parcel? Order 48213402",
+    "My blender arrived broken, order 48213377",
+    "I was charged twice on invoice 90071238",
+    "Can you send me invoice 90071222 again?",
+    "I moved, my customer number is 100517",
+    "I forgot my password",
+    "I have a problem with 48213468",
+    "This is the third time I ask. I want to talk to a person!",
+    "Write me a poem about parcels"
+  ]
+}
