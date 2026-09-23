@@ -3,7 +3,8 @@
 A customer service bot that never generates text. Jev (TypeSafe AI, via OpenRouter)
 answers fixed questions with probabilities, plain Python picks a prepared reply, asks back or hands over to a human.
 
-Live: https://jev.larsgregori.de
+- Live: https://jev.larsgregori.de
+- LinkedIn article: https://www.linkedin.com/feed/update/urn:li:activity:7508121837277638656/
 
 ## Run
 
