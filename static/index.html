@@ -171,7 +171,7 @@ footer a { color: inherit; }
         <p class="hint" id="shopName">Tap a number to use it in your message.</p>
         <div id="orders"></div>
       </div>
-      <footer>Demo with fictional data. Messages are sent to Jev (TypeSafe AI) through OpenRouter. Please do not enter personal data. <a href="https://github.com/choas/jev-service-desk-demo" target="_blank" rel="noopener">Source code on GitHub</a>.</footer>
+      <footer>Demo with fictional data. Messages are sent to Jev (TypeSafe AI). Please do not enter personal data. <a href="https://github.com/choas/jev-service-desk-demo" target="_blank" rel="noopener">Source code on GitHub</a>.</footer>
     </aside>
   </main>
 </div>
@@ -247,7 +247,9 @@ function why(calls) {
     box.append(b);
   }
   const cost = calls.reduce((s, c) => s + (c.cost || 0), 0);
-  if (cost) box.append(el("div", "note", `Cost of this answer: $${cost.toFixed(6)}`));
+  const tokens = calls.reduce((s, c) => s + (c.tokens || 0), 0);
+  if (cost) box.append(el("div", "note",
+    `Cost of this answer: $${cost.toFixed(7)} (${tokens} input tokens, ${calls.length} call${calls.length > 1 ? "s" : ""})`));
   d.append(box);
   return d;
 }

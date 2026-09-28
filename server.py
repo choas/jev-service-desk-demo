@@ -5,8 +5,8 @@ Web front end for the Jev service bot.
 Serves a small chat UI and keeps one Bot per browser session in memory.
 Replies are filled from the fictional shop in shop_data.json.
 
-    export OPENROUTER_API_KEY=...
-    python server.py              # live, calls OpenRouter
+    export TYPESAFE_API_KEY=...
+    python server.py              # live, calls the TypeSafe API
     python server.py --mock       # offline, keyword stub instead of Jev
 
 Standard library only.
@@ -23,7 +23,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from jev_service_bot import (Bot, REPLIES, T_CHOICE, T_HUMAN, T_MARGIN, T_SCOPE,
-                             call_jev, label, mock_jev, ranked)
+                             call_jev, cost, label, mock_jev, ranked)
 
 HERE = Path(__file__).parent
 DATA = json.loads((HERE / "shop_data.json").read_text())
@@ -86,7 +86,8 @@ class ShopBot(Bot):
             else:
                 d["options"] = [[label(k), p] for k, p in ranked(a)]
             decisions.append(d)
-        self.trace.append({"ms": ms, "cost": (result.get("usage") or {}).get("cost", 0),
+        usage = result.get("usage") or {}
+        self.trace.append({"ms": ms, "cost": cost(usage), "tokens": usage.get("input_tokens", 0),
                            "decisions": decisions})
         return result["answers"]
 
@@ -261,8 +262,8 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    if DECIDE is call_jev and "OPENROUTER_API_KEY" not in os.environ:
-        sys.exit("Set OPENROUTER_API_KEY or run with --mock")
+    if DECIDE is call_jev and "TYPESAFE_API_KEY" not in os.environ:
+        sys.exit("Set TYPESAFE_API_KEY or run with --mock")
     print(f"Jev demo on :{PORT} ({'mock' if DECIDE is mock_jev else 'live'})", flush=True)
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
 

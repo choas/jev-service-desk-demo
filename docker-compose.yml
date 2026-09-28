@@ -3,6 +3,6 @@ services:
   jev:
     build: .
     restart: unless-stopped
-    env_file: .env          # OPENROUTER_API_KEY
+    env_file: .env          # TYPESAFE_API_KEY
     ports:
       - "127.0.0.1:8000:8000"

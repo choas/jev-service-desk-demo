@@ -1,6 +1,6 @@
 # Jev Service Desk Demo
 
-A customer service bot that never generates text. Jev (TypeSafe AI, via OpenRouter)
+A customer service bot that never generates text. Jev (TypeSafe AI)
 answers fixed questions with probabilities, plain Python picks a prepared reply, asks back or hands over to a human.
 
 - Live: https://jev.larsgregori.de
@@ -9,7 +9,7 @@ answers fixed questions with probabilities, plain Python picks a prepared reply,
 ## Run
 
 ```bash
-cp .env.example .env        # add your OpenRouter API key
+cp .env.example .env        # add your TypeSafe API key
 docker compose up --build   # http://localhost:8000
 ```
 

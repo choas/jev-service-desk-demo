@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Service bot that uses only Jev (TypeSafe AI) through OpenRouter.
+Service bot that uses only Jev (TypeSafe AI) through the TypeSafe API.
 
 No LLM generates text here. Jev returns typed decisions with probabilities,
 plain Python turns them into canned replies, clarifying questions or a handoff.
 
-    export OPENROUTER_API_KEY=...
-    python jev_service_bot.py            # live, calls OpenRouter
+    export TYPESAFE_API_KEY=...
+    python jev_service_bot.py            # live, calls the TypeSafe API
     python jev_service_bot.py --mock     # offline, keyword stub instead of Jev
     python jev_service_bot.py --debug    # print every decision Jev returns
 
@@ -20,8 +20,12 @@ import sys
 import time
 import urllib.request
 
-URL = "https://openrouter.ai/api/v1/systemone"
+URL = "https://api.typesafe.ai/v1/systemone"
 MODEL = "jev-latest"
+
+# TypeSafe list price in USD per token. Output tokens are free.
+PRICE_INPUT = 0.042 / 1_000_000
+PRICE_OUTPUT = 0.0
 
 # Thresholds are product decisions, not model settings. Tune them on real traffic.
 T_SCOPE = 0.50     # below: not a service request at all
@@ -105,11 +109,19 @@ def label(key):
     return key.replace("_", " ")
 
 
+def cost(usage):
+    """USD for one call. The API reports tokens only, so price them here."""
+    usage = usage or {}
+    if "cost" in usage:
+        return usage["cost"]
+    return usage.get("input_tokens", 0) * PRICE_INPUT + usage.get("output_tokens", 0) * PRICE_OUTPUT
+
+
 def call_jev(state, questions):
     """POST state + typed questions, get typed answers back."""
     body = json.dumps({"model": MODEL, "state": state, "questions": questions}).encode()
     req = urllib.request.Request(URL, data=body, headers={
-        "Authorization": "Bearer " + os.environ["OPENROUTER_API_KEY"],
+        "Authorization": "Bearer " + os.environ["TYPESAFE_API_KEY"],
         "Content-Type": "application/json",
     })
     with urllib.request.urlopen(req, timeout=30) as resp:
@@ -182,7 +194,7 @@ class Bot:
         result = self.decide(self.state, questions)
         if self.debug:
             ms = (time.perf_counter() - t0) * 1000
-            print(f"    [{ms:.0f} ms, usage {result.get('usage')}]")
+            print(f"    [{ms:.0f} ms, usage {result.get('usage')}, ${cost(result.get('usage')):.7f}]")
             for name, a in result["answers"].items():
                 shown = a["noul"] if a["type"] == "noul" else ranked(a)
                 print(f"    {name}: {shown}")
@@ -246,8 +258,8 @@ class Bot:
 
 def main():
     mock = "--mock" in sys.argv
-    if not mock and "OPENROUTER_API_KEY" not in os.environ:
-        sys.exit("Set OPENROUTER_API_KEY or run with --mock")
+    if not mock and "TYPESAFE_API_KEY" not in os.environ:
+        sys.exit("Set TYPESAFE_API_KEY or run with --mock")
     bot = Bot(mock_jev if mock else call_jev, debug="--debug" in sys.argv)
     print("Service bot (Jev only). Empty line to quit.")
     while True:
